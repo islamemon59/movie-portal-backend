@@ -58,16 +58,3 @@ export class UserController {
     }
   }
 
-  async deleteUser(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      await userService.deleteUser(id);
-      res.status(204).send();
-    } catch (error: any) {
-      if (error.code === 'P2025') {
-        throw new AppError(404, 'User not found');
-      }
-      throw new AppError(500, 'Failed to delete user');
-    }
-  }
-}
