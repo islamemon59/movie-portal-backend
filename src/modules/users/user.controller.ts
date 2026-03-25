@@ -42,19 +42,4 @@ export class UserController {
     }
   }
 
-  async updateUser(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const user = await userService.updateUser(id, req.body);
-      res.json(user);
-    } catch (error: any) {
-      if (error.code === 'P2025') {
-        throw new AppError(404, 'User not found');
-      }
-      if (error.code === 'P2002') {
-        throw new AppError(400, 'Email already exists');
-      }
-      throw new AppError(500, 'Failed to update user');
-    }
-  }
 
