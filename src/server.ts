@@ -3,7 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import { env } from './config/env';
 import { prisma } from './config/database';
-import { errorHandler } from './middleware/errorHandler';
+import { globalErrorHandler, NotFoundError } from './utils/globalErrorHandler';
 import authRouter from './routes/auth';
 import usersRouter from './modules/users/user.routes';
 import moviesRouter from './modules/movies/movie.routes';
@@ -43,11 +43,12 @@ app.get('/', (_req: Request, res: Response) => {
 });
 
 // Error handling middleware
-app.use(errorHandler);
+app.use(globalErrorHandler);
 
 // 404 handler
-app.use((_req: Request, res: Response) => {
-  res.status(404).json({ error: 'Route not found' });
+app.use((_req: Request, _res: Response, next) => {
+  const error = new NotFoundError('Route');
+  next(error);
 });
 
 const PORT = env.PORT;

@@ -1,29 +1,15 @@
-import { Request, Response, NextFunction } from 'express';
+// This file is kept for backward compatibility
+// All error handling has been moved to src/utils/globalErrorHandler.ts
 
-export class AppError extends Error {
-  constructor(
-    public statusCode: number,
-    message: string
-  ) {
-    super(message);
-    Error.captureStackTrace(this, this.constructor);
-  }
-}
-
-export const errorHandler = (
-  err: Error | AppError,
-  _req: Request,
-  res: Response,
-  _next: NextFunction
-) => {
-  const statusCode = err instanceof AppError ? err.statusCode : 500;
-  const message = err.message || 'Internal server error';
-
-  console.error(`Error [${statusCode}]:`, err);
-
-  res.status(statusCode).json({
-    error: message,
-    timestamp: new Date().toISOString(),
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-  });
-};
+export { 
+  AppError,
+  ValidationError,
+  AuthError,
+  ForbiddenError,
+  NotFoundError,
+  ConflictError,
+  DatabaseError,
+  globalErrorHandler,
+  catchAsyncError,
+  createError,
+} from '../utils/globalErrorHandler';
