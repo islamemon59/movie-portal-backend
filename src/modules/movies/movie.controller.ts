@@ -5,7 +5,7 @@ import { AppError } from '../../middleware/errorHandler';
 const movieService = new MovieService();
 
 export class MovieController {
-  async getAllMovies(req: Request, res: Response) {
+  async getAllMovies(_req: Request, res: Response) {
     try {
       const movies = await movieService.getAllMovies();
       res.json(movies);

@@ -6,7 +6,7 @@ import { z } from 'zod';
 const router = Router();
 
 // Get all users
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
     const users = await prisma.user.findMany();
     res.json(users);

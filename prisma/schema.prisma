@@ -7,16 +7,66 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String     @id @default(uuid())
-  email     String     @unique
-  name      String?
-  image     String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id            String    @id @default(uuid())
+  name          String?
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  password      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  verifications Verification[]
+}
+
+model Account {
+  id                 String    @id @default(uuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refreshToken       String?
+  accessToken        String?
+  expiresAt          Int?
+  tokenType          String?
+  scope              String?
+  idToken            String?
+  sessionState       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  token     String   @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Verification {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  tokenType String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Movie {

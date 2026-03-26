@@ -6,7 +6,7 @@ import { z } from 'zod';
 const router = Router();
 
 // Get all movies
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
     const movies = await prisma.movie.findMany();
     res.json(movies);
