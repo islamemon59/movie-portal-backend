@@ -1,0 +1,9 @@
+model Movie {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  releaseDate DateTime?
+  posterUrl   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

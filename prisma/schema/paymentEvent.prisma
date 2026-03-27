@@ -1,0 +1,15 @@
+model PaymentEvent {
+  id              String          @id @default(uuid())
+  provider        PaymentProvider
+  externalEventId String
+  subscriptionId  String?
+  userId          String?
+  eventType       String
+  payload         Json
+  processedAt     DateTime?
+  createdAt       DateTime        @default(now())
+
+  subscription    Subscription?   @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, externalEventId])
+}

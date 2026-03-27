@@ -1,9 +1,9 @@
-import { defineConfig } from '@prisma/internals';
+import { defineConfig, env } from 'prisma/config';
 
 export default defineConfig({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
+  schema: 'prisma/schema',
+  engine: 'classic',
+  datasource: {
+    url: env('DATABASE_URL'),
   },
 });

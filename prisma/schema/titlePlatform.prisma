@@ -1,0 +1,10 @@
+model TitlePlatform {
+  titleId    String
+  platformId String
+
+  title      Title    @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  platform   Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+  @@id([titleId, platformId])
+  @@index([platformId])
+}

@@ -9,6 +9,13 @@ export interface Env {
   BETTER_AUTH_SECRET: string;
   BETTER_AUTH_URL: string;
   CORS_ORIGIN: string;
+  STRIPE_WEBHOOK_SECRET: string;
+  SSLC_STORE_ID: string;
+  SSLC_STORE_PASSWORD: string;
+  SSLC_SUCCESS_URL: string;
+  SSLC_FAIL_URL: string;
+  SSLC_CANCEL_URL: string;
+  SSLC_IPN_URL: string;
 }
 
 export const env: Env = {
@@ -18,4 +25,11 @@ export const env: Env = {
   BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || 'dev-secret-key',
   BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
   CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || 'stripe-webhook-dev-secret',
+  SSLC_STORE_ID: process.env.SSLC_STORE_ID || 'sandbox-store-id',
+  SSLC_STORE_PASSWORD: process.env.SSLC_STORE_PASSWORD || 'sandbox-store-password',
+  SSLC_SUCCESS_URL: process.env.SSLC_SUCCESS_URL || 'http://localhost:3000/payment/success',
+  SSLC_FAIL_URL: process.env.SSLC_FAIL_URL || 'http://localhost:3000/payment/fail',
+  SSLC_CANCEL_URL: process.env.SSLC_CANCEL_URL || 'http://localhost:3000/payment/cancel',
+  SSLC_IPN_URL: process.env.SSLC_IPN_URL || 'http://localhost:3000/api/v1/payments/sslcommerz/ipn',
 };

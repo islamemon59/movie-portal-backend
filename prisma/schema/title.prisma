@@ -1,0 +1,24 @@
+model Title {
+  id            String    @id @default(uuid())
+  title         String
+  slug          String    @unique
+  description   String?
+  type          TitleType
+  priceTier     PriceTier @default(FREE)
+  releaseYear   Int?
+  posterUrl     String?
+  backdropUrl   String?
+  trailerUrl    String?
+  durationMin   Int?
+  isPublished   Boolean   @default(false)
+  isDeleted     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  genres        TitleGenre[]
+  platforms     TitlePlatform[]
+  reviews       Review[]
+  watchlistBy   WatchlistItem[]
+
+  @@index([type, createdAt])
+}

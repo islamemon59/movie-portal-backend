@@ -1,0 +1,9 @@
+model Platform {
+  id        String        @id @default(uuid())
+  name      String        @unique
+  slug      String        @unique
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  titles    TitlePlatform[]
+}

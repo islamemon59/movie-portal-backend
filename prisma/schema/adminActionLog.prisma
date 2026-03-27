@@ -1,0 +1,15 @@
+model AdminActionLog {
+  id            String   @id @default(uuid())
+  adminUserId   String
+  targetUserId  String?
+  targetTitleId String?
+  targetReviewId String?
+  targetCommentId String?
+  action        String
+  reason        String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  adminUser     User     @relation("AdminActionsByUser", fields: [adminUserId], references: [id], onDelete: Cascade)
+  targetUser    User?    @relation("AdminActionsOnUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+}

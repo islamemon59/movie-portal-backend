@@ -36,4 +36,27 @@ export class UserService {
       where: { id },
     });
   }
+
+  async getPurchases(userId: string) {
+    return prisma.paymentEvent.findMany({
+      where: { userId, processedAt: { not: null } },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        provider: true,
+        eventType: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  async getActiveSubscription(userId: string) {
+    return prisma.subscription.findFirst({
+      where: {
+        userId,
+        status: 'ACTIVE',
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+  }
 }

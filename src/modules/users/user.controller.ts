@@ -6,6 +6,50 @@ import { AppError } from '../../middleware/errorHandler';
 const userService = new UserService();
 
 export class UserController {
+  async getMe(req: Request, res: Response) {
+    const userId = req.authUser?.id;
+    if (!userId) {
+      throw new AppError(401, 'Authentication required');
+    }
+
+    const user = await userService.getUserById(userId);
+    if (!user) {
+      throw new AppError(404, 'User not found');
+    }
+
+    res.json({ data: user });
+  }
+
+  async updateMe(req: Request, res: Response) {
+    const userId = req.authUser?.id;
+    if (!userId) {
+      throw new AppError(401, 'Authentication required');
+    }
+
+    const user = await userService.updateUser(userId, req.body);
+    res.json({ data: user });
+  }
+
+  async getMyPurchases(req: Request, res: Response) {
+    const userId = req.authUser?.id;
+    if (!userId) {
+      throw new AppError(401, 'Authentication required');
+    }
+
+    const purchases = await userService.getPurchases(userId);
+    res.json({ data: purchases });
+  }
+
+  async getMySubscription(req: Request, res: Response) {
+    const userId = req.authUser?.id;
+    if (!userId) {
+      throw new AppError(401, 'Authentication required');
+    }
+
+    const subscription = await userService.getActiveSubscription(userId);
+    res.json({ data: subscription });
+  }
+
   async getAllUsers(_req: Request, res: Response) {
     try {
       const users = await userService.getAllUsers();

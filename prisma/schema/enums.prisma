@@ -1,0 +1,32 @@
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  UNPUBLISHED
+}
+
+enum TitleType {
+  MOVIE
+  SERIES
+}
+
+enum PriceTier {
+  FREE
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum PaymentProvider {
+  STRIPE
+  SSLCOMMERZ
+}
