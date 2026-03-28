@@ -2,6 +2,7 @@ import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
+import { Prisma } from '@prisma/client';
 import { env } from './config/env';
 import { prisma } from './config/database';
 import { globalErrorHandler, NotFoundError } from './utils/globalErrorHandler';
@@ -83,18 +84,33 @@ app.use((_req: Request, _res: Response, next) => {
 
 const PORT = env.PORT;
 
+const startHttpServer = () => {
+  app.listen(PORT, () => {
+    console.log(`✓ Server running on http://localhost:${PORT}`);
+    console.log(`✓ Environment: ${env.NODE_ENV}`);
+    console.log(`✓ API Documentation: http://localhost:${PORT}`);
+  });
+};
+
 const startServer = async () => {
   try {
     // Test database connection
     await prisma.$queryRaw`SELECT 1`;
     console.log('✓ Database connection successful');
-
-    app.listen(PORT, () => {
-      console.log(`✓ Server running on http://localhost:${PORT}`);
-      console.log(`✓ Environment: ${env.NODE_ENV}`);
-      console.log(`✓ API Documentation: http://localhost:${PORT}`);
-    });
+    startHttpServer();
   } catch (error) {
+    const dbAuthError =
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2010' &&
+      error.meta?.code === '28P01';
+
+    if (dbAuthError && env.NODE_ENV === 'development') {
+      console.error('✗ Database authentication failed (28P01).');
+      console.error('⚠ Starting API without DB readiness in development mode.');
+      startHttpServer();
+      return;
+    }
+
     console.error('✗ Failed to start server:', error);
     process.exit(1);
   }
