@@ -19,7 +19,7 @@ export interface Env {
 }
 
 export const env: Env = {
-  DATABASE_URL: process.env.DATABASE_URL || 'postgresql://localhost:5432/movie_portal',
+  DATABASE_URL: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_CtUzQqd9Ob1w@ep-lively-poetry-a8ciehq1-pooler.eastus2.azure.neon.tech/neondb?sslmode=require&channel_binding=require',
   PORT: parseInt(process.env.PORT || '3000'),
   NODE_ENV: (process.env.NODE_ENV || 'development') as Env['NODE_ENV'],
   BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || 'dev-secret-key',

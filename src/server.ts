@@ -1,4 +1,5 @@
 import express, { Express, Request, Response } from 'express';
+import type { Server } from 'node:http';
 import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
@@ -83,12 +84,27 @@ app.use((_req: Request, _res: Response, next) => {
 });
 
 const PORT = env.PORT;
+const MAX_PORT_RETRIES = 10;
+let httpServer: Server | undefined;
 
-const startHttpServer = () => {
-  app.listen(PORT, () => {
-    console.log(`✓ Server running on http://localhost:${PORT}`);
+const startHttpServer = (preferredPort = PORT, retries = MAX_PORT_RETRIES) => {
+  const server = app.listen(preferredPort, () => {
+    httpServer = server;
+    console.log(`✓ Server running on http://localhost:${preferredPort}`);
     console.log(`✓ Environment: ${env.NODE_ENV}`);
-    console.log(`✓ API Documentation: http://localhost:${PORT}`);
+    console.log(`✓ API Documentation: http://localhost:${preferredPort}`);
+  });
+
+  server.on('error', (error: NodeJS.ErrnoException) => {
+    if (error.code === 'EADDRINUSE' && env.NODE_ENV === 'development' && retries > 0) {
+      const nextPort = preferredPort + 1;
+      console.warn(`⚠ Port ${preferredPort} is in use, retrying on ${nextPort}...`);
+      startHttpServer(nextPort, retries - 1);
+      return;
+    }
+
+    console.error('✗ Failed to start HTTP server:', error);
+    process.exit(1);
   });
 };
 
@@ -119,6 +135,7 @@ const startServer = async () => {
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('\nShutting down gracefully...');
+  httpServer?.close();
   await prisma.$disconnect();
   process.exit(0);
 });
