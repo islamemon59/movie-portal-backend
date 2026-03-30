@@ -4,7 +4,11 @@ import { ConflictError, ForbiddenError, NotFoundError } from '../../utils/global
 import { getPagination } from '../../utils/apiResponse';
 
 export class ReviewsService {
-  async create(titleId: string, userId: string, data: { rating: number; content: string; tags?: string[]; hasSpoiler?: boolean }) {
+  async create(
+    titleId: string,
+    userId: string,
+    data: { rating: number; content: string; tags?: string[]; hasSpoiler?: boolean }
+  ) {
     const title = await prisma.title.findFirst({ where: { id: titleId, isDeleted: false } });
     if (!title) {
       throw new NotFoundError('Title');
@@ -30,7 +34,11 @@ export class ReviewsService {
     }
   }
 
-  async update(reviewId: string, userId: string, data: { rating?: number; content?: string; tags?: string[]; hasSpoiler?: boolean }) {
+  async update(
+    reviewId: string,
+    userId: string,
+    data: { rating?: number; content?: string; tags?: string[]; hasSpoiler?: boolean }
+  ) {
     const review = await prisma.review.findUnique({ where: { id: reviewId } });
     if (!review || review.isDeleted) {
       throw new NotFoundError('Review');

@@ -28,7 +28,7 @@ router.get(
       pendingReviews,
       activeSubscriptions,
     });
-  }),
+  })
 );
 
 router.get(
@@ -55,7 +55,7 @@ router.get(
     }));
 
     sendSuccess(res, mapped);
-  }),
+  })
 );
 
 router.get(
@@ -79,9 +79,9 @@ router.get(
       rows.map((r) => ({
         title: titles.find((t) => t.id === r.titleId),
         reviewCount: r._count.id,
-      })),
+      }))
     );
-  }),
+  })
 );
 
 router.get(
@@ -98,7 +98,7 @@ router.get(
       sslcommerzEvents: sslCount,
       activeSubscriptions: activeSubs,
     });
-  }),
+  })
 );
 
 router.get(
@@ -120,7 +120,7 @@ router.get(
       limit: pagination.limit,
       total,
     });
-  }),
+  })
 );
 
 export default router;

@@ -21,12 +21,21 @@ export class ReviewsController {
   }
 
   async listApprovedByTitle(req: Request, res: Response): Promise<void> {
-    const result = await service.listApprovedByTitle(req.params.titleId, req.query as Record<string, string>);
+    const result = await service.listApprovedByTitle(
+      req.params.titleId,
+      req.query as Record<string, string>
+    );
     sendSuccess(res, result.data, result.meta);
   }
 
   async listForAdmin(req: Request, res: Response): Promise<void> {
-    const result = await service.listForAdmin(req.query as { page?: string; limit?: string; status?: 'PENDING' | 'APPROVED' | 'UNPUBLISHED' });
+    const result = await service.listForAdmin(
+      req.query as {
+        page?: string;
+        limit?: string;
+        status?: 'PENDING' | 'APPROVED' | 'UNPUBLISHED';
+      }
+    );
     sendSuccess(res, result.data, result.meta);
   }
 

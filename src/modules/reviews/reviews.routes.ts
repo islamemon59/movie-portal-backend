@@ -20,27 +20,30 @@ router.post(
   '/titles/:titleId/reviews',
   authMiddleware,
   validate({ params: titleIdParamSchema, body: createReviewBodySchema }),
-  asyncHandler((req, res) => controller.create(req, res)),
+  asyncHandler((req, res) => controller.create(req, res))
 );
 
 router.patch(
   '/reviews/:id',
   authMiddleware,
   validate({ params: reviewIdParamSchema, body: updateReviewBodySchema }),
-  asyncHandler((req, res) => controller.update(req, res)),
+  asyncHandler((req, res) => controller.update(req, res))
 );
 
 router.delete(
   '/reviews/:id',
   authMiddleware,
   validate({ params: reviewIdParamSchema }),
-  asyncHandler((req, res) => controller.remove(req, res)),
+  asyncHandler((req, res) => controller.remove(req, res))
 );
 
 router.get(
   '/titles/:titleId/reviews',
-  validate({ params: titleIdParamSchema, query: z.object({ page: z.string().optional(), limit: z.string().optional() }) }),
-  asyncHandler((req, res) => controller.listApprovedByTitle(req, res)),
+  validate({
+    params: titleIdParamSchema,
+    query: z.object({ page: z.string().optional(), limit: z.string().optional() }),
+  }),
+  asyncHandler((req, res) => controller.listApprovedByTitle(req, res))
 );
 
 router.get(
@@ -48,7 +51,7 @@ router.get(
   authMiddleware,
   requireRole('ADMIN'),
   validate({ query: adminReviewQuerySchema }),
-  asyncHandler((req, res) => controller.listForAdmin(req, res)),
+  asyncHandler((req, res) => controller.listForAdmin(req, res))
 );
 
 router.patch(
@@ -56,15 +59,18 @@ router.patch(
   authMiddleware,
   requireRole('ADMIN'),
   validate({ params: reviewIdParamSchema }),
-  asyncHandler((req, res) => controller.approve(req, res)),
+  asyncHandler((req, res) => controller.approve(req, res))
 );
 
 router.patch(
   '/admin/reviews/:id/unpublish',
   authMiddleware,
   requireRole('ADMIN'),
-  validate({ params: reviewIdParamSchema, body: z.object({ reason: z.string().max(500).optional() }).strict() }),
-  asyncHandler((req, res) => controller.unpublish(req, res)),
+  validate({
+    params: reviewIdParamSchema,
+    body: z.object({ reason: z.string().max(500).optional() }).strict(),
+  }),
+  asyncHandler((req, res) => controller.unpublish(req, res))
 );
 
 router.delete(
@@ -72,7 +78,7 @@ router.delete(
   authMiddleware,
   requireRole('ADMIN'),
   validate({ params: reviewIdParamSchema }),
-  asyncHandler((req, res) => controller.remove(req, res)),
+  asyncHandler((req, res) => controller.remove(req, res))
 );
 
 export default router;
