@@ -8,26 +8,35 @@ const router = Router();
 const movieController = new MovieController();
 
 // Get all movies
-router.get('/', asyncHandler((req, res) => movieController.getAllMovies(req, res)));
+router.get(
+  '/',
+  asyncHandler((req, res) => movieController.getAllMovies(req, res))
+);
 
 // Get movie by ID
-router.get('/:id', asyncHandler((req, res) => movieController.getMovieById(req, res)));
+router.get(
+  '/:id',
+  asyncHandler((req, res) => movieController.getMovieById(req, res))
+);
 
 // Create movie
 router.post(
   '/',
   validateRequest(CreateMovieSchema),
-  asyncHandler((req, res) => movieController.createMovie(req, res)),
+  asyncHandler((req, res) => movieController.createMovie(req, res))
 );
 
 // Update movie
 router.put(
   '/:id',
   validateRequest(UpdateMovieSchema),
-  asyncHandler((req, res) => movieController.updateMovie(req, res)),
+  asyncHandler((req, res) => movieController.updateMovie(req, res))
 );
 
 // Delete movie
-router.delete('/:id', asyncHandler((req, res) => movieController.deleteMovie(req, res)));
+router.delete(
+  '/:id',
+  asyncHandler((req, res) => movieController.deleteMovie(req, res))
+);
 
 export default router;

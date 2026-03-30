@@ -95,7 +95,9 @@ export class TitlesService {
         _avg: { rating: true },
         _count: { id: true },
       }),
-      prisma.reviewLike.count({ where: { review: { titleId: id, status: ReviewStatus.APPROVED } } }),
+      prisma.reviewLike.count({
+        where: { review: { titleId: id, status: ReviewStatus.APPROVED } },
+      }),
       prisma.comment.count({ where: { review: { titleId: id, status: ReviewStatus.APPROVED } } }),
     ]);
 
@@ -141,21 +143,24 @@ export class TitlesService {
     });
   }
 
-  async update(id: string, data: {
-    title?: string;
-    slug?: string;
-    description?: string;
-    type?: 'MOVIE' | 'SERIES';
-    priceTier?: 'FREE' | 'PREMIUM';
-    releaseYear?: number;
-    posterUrl?: string;
-    backdropUrl?: string;
-    trailerUrl?: string;
-    durationMin?: number;
-    isPublished?: boolean;
-    genreIds?: string[];
-    platformIds?: string[];
-  }) {
+  async update(
+    id: string,
+    data: {
+      title?: string;
+      slug?: string;
+      description?: string;
+      type?: 'MOVIE' | 'SERIES';
+      priceTier?: 'FREE' | 'PREMIUM';
+      releaseYear?: number;
+      posterUrl?: string;
+      backdropUrl?: string;
+      trailerUrl?: string;
+      durationMin?: number;
+      isPublished?: boolean;
+      genreIds?: string[];
+      platformIds?: string[];
+    }
+  ) {
     const { genreIds, platformIds, ...base } = data;
 
     return prisma.$transaction(async (tx) => {

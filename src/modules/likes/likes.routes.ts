@@ -29,7 +29,7 @@ router.post(
     });
 
     res.status(201).json({ data: like });
-  }),
+  })
 );
 
 router.delete(
@@ -45,7 +45,7 @@ router.delete(
     });
 
     res.status(204).send();
-  }),
+  })
 );
 
 export default router;

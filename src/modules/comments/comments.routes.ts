@@ -51,7 +51,7 @@ router.get(
       limit: pagination.limit,
       total,
     });
-  }),
+  })
 );
 
 router.post(
@@ -69,7 +69,7 @@ router.post(
     });
 
     res.status(201).json({ data: comment });
-  }),
+  })
 );
 
 router.post(
@@ -93,7 +93,7 @@ router.post(
     });
 
     res.status(201).json({ data: reply });
-  }),
+  })
 );
 
 router.patch(
@@ -121,7 +121,7 @@ router.patch(
     });
 
     sendSuccess(res, updated);
-  }),
+  })
 );
 
 router.delete(
@@ -143,7 +143,7 @@ router.delete(
     });
 
     res.status(204).send();
-  }),
+  })
 );
 
 router.patch(
@@ -166,7 +166,7 @@ router.patch(
     });
 
     sendSuccess(res, updated);
-  }),
+  })
 );
 
 router.delete(
@@ -189,7 +189,7 @@ router.delete(
     });
 
     res.status(204).send();
-  }),
+  })
 );
 
 export default router;

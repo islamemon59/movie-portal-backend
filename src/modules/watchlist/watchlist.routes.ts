@@ -34,7 +34,7 @@ router.get(
       limit: pagination.limit,
       total,
     });
-  }),
+  })
 );
 
 router.post(
@@ -57,7 +57,7 @@ router.post(
     });
 
     res.status(201).json({ data: created });
-  }),
+  })
 );
 
 router.delete(
@@ -73,7 +73,7 @@ router.delete(
     });
 
     res.status(204).send();
-  }),
+  })
 );
 
 export default router;
