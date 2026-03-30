@@ -18,9 +18,7 @@ export const authMiddleware = async (
     // Get session token from header or cookies
     const authHeader = req.headers.authorization?.split(' ')[1];
     const sessionToken =
-      req.cookies?.['better-auth.session_token'] ||
-      req.headers['x-session-token'] ||
-      authHeader;
+      req.cookies?.['better-auth.session_token'] || req.headers['x-session-token'] || authHeader;
 
     if (!sessionToken) {
       res.status(401).json({ error: 'No session token provided' });

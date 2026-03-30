@@ -1,7 +1,7 @@
 // This file is kept for backward compatibility
 // All error handling has been moved to src/utils/globalErrorHandler.ts
 
-export { 
+export {
   AppError,
   ValidationError,
   AuthError,

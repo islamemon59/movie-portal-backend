@@ -31,7 +31,7 @@ const parseToken = (req: Request): string | null => {
 export const authMiddleware = async (
   req: Request,
   _res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const token = parseToken(req);
