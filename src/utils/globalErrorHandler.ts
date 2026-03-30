@@ -19,7 +19,10 @@ export class AppError extends Error {
 }
 
 export class ValidationError extends AppError {
-  constructor(message: string, public details?: Record<string, any>) {
+  constructor(
+    message: string,
+    public details?: Record<string, any>
+  ) {
     super(400, message, true);
     Object.setPrototypeOf(this, ValidationError.prototype);
   }
@@ -54,7 +57,10 @@ export class ConflictError extends AppError {
 }
 
 export class DatabaseError extends AppError {
-  constructor(message: string = 'Database operation failed', public originalError?: Error) {
+  constructor(
+    message: string = 'Database operation failed',
+    public originalError?: Error
+  ) {
     super(500, message, false);
     Object.setPrototypeOf(this, DatabaseError.prototype);
   }
@@ -115,7 +121,9 @@ const handlePrismaError = (error: any): AppError => {
     return new ValidationError('Invalid foreign key reference');
   }
   if (error.code === 'P2014') {
-    return new ValidationError('The change you are trying to make would violate a required relation');
+    return new ValidationError(
+      'The change you are trying to make would violate a required relation'
+    );
   }
   return new DatabaseError('Database operation failed', error);
 };
@@ -190,7 +198,9 @@ export const globalErrorHandler = (
  * Wraps async route handlers to catch errors automatically
  */
 
-export const catchAsyncError = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => {
+export const catchAsyncError = (
+  fn: (req: Request, res: Response, next: NextFunction) => Promise<any>
+) => {
   return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };

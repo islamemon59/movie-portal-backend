@@ -11,7 +11,7 @@ export class PaymentsService {
     userId: string,
     plan: 'monthly' | 'yearly',
     successUrl: string,
-    cancelUrl: string,
+    cancelUrl: string
   ) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -278,7 +278,8 @@ export class PaymentsService {
 
     if (!subscription_record) return;
 
-    const newStatus = subscription.status === 'active' ? SubscriptionStatus.ACTIVE : SubscriptionStatus.PAST_DUE;
+    const newStatus =
+      subscription.status === 'active' ? SubscriptionStatus.ACTIVE : SubscriptionStatus.PAST_DUE;
 
     await prisma.subscription.update({
       where: { id: subscription_record.id },

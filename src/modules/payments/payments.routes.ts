@@ -41,12 +41,21 @@ router.post(
   validate({ body: createCheckoutSessionSchema }),
   asyncHandler(async (req: Request, res: Response) => {
     const userId = req.authUser!.id;
-    const { plan, successUrl = `${env.CORS_ORIGIN}/payment/success`, cancelUrl = `${env.CORS_ORIGIN}/payment/cancel` } = req.body;
+    const {
+      plan,
+      successUrl = `${env.CORS_ORIGIN}/payment/success`,
+      cancelUrl = `${env.CORS_ORIGIN}/payment/cancel`,
+    } = req.body;
 
-    const result = await paymentsService.createStripeCheckoutSession(userId, plan, successUrl, cancelUrl);
+    const result = await paymentsService.createStripeCheckoutSession(
+      userId,
+      plan,
+      successUrl,
+      cancelUrl
+    );
 
     sendSuccess(res, result);
-  }),
+  })
 );
 
 /**
@@ -61,7 +70,7 @@ router.get(
     const userId = req.authUser!.id;
     const status = await paymentsService.getSubscriptionStatus(userId);
     sendSuccess(res, status);
-  }),
+  })
 );
 
 /**
@@ -80,7 +89,7 @@ router.post(
     const subscription = await paymentsService.cancelSubscription(userId, cancelAtPeriodEnd);
 
     sendSuccess(res, subscription);
-  }),
+  })
 );
 
 /**
@@ -92,10 +101,10 @@ router.post(
   '/payments/stripe/webhook',
   asyncHandler(async (req: Request, res: Response) => {
     const signature = req.headers['stripe-signature'] as string;
-    
+
     // For raw body handling in the webhook
     let rawBody: Buffer | string = '';
-    
+
     if (Buffer.isBuffer(req.body)) {
       rawBody = req.body;
     } else if (typeof req.body === 'string') {
@@ -112,7 +121,11 @@ router.post(
 
     try {
       const bodyBuffer = typeof rawBody === 'string' ? Buffer.from(rawBody) : rawBody;
-      const event = stripe.webhooks.constructEvent(bodyBuffer, signature, env.STRIPE_WEBHOOK_SECRET);
+      const event = stripe.webhooks.constructEvent(
+        bodyBuffer,
+        signature,
+        env.STRIPE_WEBHOOK_SECRET
+      );
 
       const result = await paymentsService.handleStripeWebhook(event);
 
@@ -121,7 +134,7 @@ router.post(
       console.error('Webhook signature verification failed:', error.message);
       res.status(400).json({ error: 'Webhook signature verification failed' });
     }
-  }),
+  })
 );
 
 // ============================================
@@ -164,7 +177,7 @@ router.post(
       cancelUrl: env.SSLC_CANCEL_URL,
       ipnUrl: env.SSLC_IPN_URL,
     });
-  }),
+  })
 );
 
 router.post(
@@ -178,7 +191,9 @@ router.post(
     };
 
     if (!payload?.tran_id || !payload.verify_sign) {
-      res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Missing transaction payload' } });
+      res
+        .status(400)
+        .json({ error: { code: 'BAD_REQUEST', message: 'Missing transaction payload' } });
       return;
     }
 
@@ -187,7 +202,9 @@ router.post(
       .digest('hex');
 
     if (expected !== payload.verify_sign) {
-      res.status(400).json({ error: { code: 'INVALID_SIGNATURE', message: 'Invalid IPN signature' } });
+      res
+        .status(400)
+        .json({ error: { code: 'INVALID_SIGNATURE', message: 'Invalid IPN signature' } });
       return;
     }
 
@@ -230,10 +247,12 @@ router.post(
     }
 
     res.status(200).json({ received: true });
-  }),
+  })
 );
 
-router.get('/payments/sslcommerz/success', (_req, res) => sendSuccess(res, { status: 'processing' }));
+router.get('/payments/sslcommerz/success', (_req, res) =>
+  sendSuccess(res, { status: 'processing' })
+);
 router.get('/payments/sslcommerz/fail', (_req, res) => sendSuccess(res, { status: 'failed' }));
 router.get('/payments/sslcommerz/cancel', (_req, res) => sendSuccess(res, { status: 'canceled' }));
 
