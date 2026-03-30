@@ -8,6 +8,7 @@ import { env } from './config/env';
 import { prisma } from './config/database';
 import { globalErrorHandler, NotFoundError } from './utils/globalErrorHandler';
 import authRouter from './routes/auth';
+import otpRouter from './routes/otp';
 import usersRouter from './modules/users/user.routes';
 import moviesRouter from './modules/movies/movie.routes';
 import titlesRouter from './modules/titles/titles.routes';
@@ -39,6 +40,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Auth Routes
 app.use('/api/v1/auth', authRateLimiter, authRouter);
+app.use('/api/v1/auth', authRateLimiter, otpRouter);
 app.use('/api/auth', authRateLimiter, authRouter);
 
 // Health check route
