@@ -9,6 +9,8 @@ export interface Env {
   BETTER_AUTH_SECRET: string;
   BETTER_AUTH_URL: string;
   CORS_ORIGIN: string;
+  GOOGLE_CLIENT_ID: string;
+  GOOGLE_CLIENT_SECRET: string;
   STRIPE_API_KEY: string;
   STRIPE_WEBHOOK_SECRET: string;
   SSLC_STORE_ID: string;
@@ -28,6 +30,8 @@ export const env: Env = {
   BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || 'dev-secret-key',
   BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
   CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || 'google-client-id',
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || 'google-client-secret',
   STRIPE_API_KEY: process.env.STRIPE_API_KEY || 'sk_test_fake_key',
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || 'stripe-webhook-dev-secret',
   SSLC_STORE_ID: process.env.SSLC_STORE_ID || 'sandbox-store-id',
