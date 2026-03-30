@@ -1,21 +1,132 @@
-import { createHmac, timingSafeEqual } from 'crypto';
-import { Router } from 'express';
-import { SubscriptionStatus } from '@prisma/client';
+import { createHmac } from 'crypto';
+import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { prisma } from '../../config/database';
-import { env } from '../../config/env';
 import { asyncHandler } from '../../middleware/asyncHandler';
 import { authMiddleware } from '../../middleware/auth.middleware';
 import { validate } from '../../middleware/validate.middleware';
+import { paymentsService } from '../../services/payments.service';
+import { stripe } from '../../config/stripe';
+import { env } from '../../config/env';
 import { sendSuccess } from '../../utils/apiResponse';
+import { prisma } from '../../config/database';
 
 const router = Router();
 
-const stripeCheckoutSchema = z
+// ============================================
+// STRIPE PAYMENT ROUTES
+// ============================================
+
+const createCheckoutSessionSchema = z
   .object({
     plan: z.enum(['monthly', 'yearly']),
+    successUrl: z.string().url().optional(),
+    cancelUrl: z.string().url().optional(),
   })
   .strict();
+
+const cancelSubscriptionSchema = z
+  .object({
+    cancelAtPeriodEnd: z.boolean().default(true),
+  })
+  .strict();
+
+/**
+ * POST /api/v1/payments/stripe/create-checkout-session
+ * Create a Stripe checkout session for subscription
+ * Requires authentication
+ */
+router.post(
+  '/payments/stripe/create-checkout-session',
+  authMiddleware,
+  validate({ body: createCheckoutSessionSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.authUser!.id;
+    const { plan, successUrl = `${env.CORS_ORIGIN}/payment/success`, cancelUrl = `${env.CORS_ORIGIN}/payment/cancel` } = req.body;
+
+    const result = await paymentsService.createStripeCheckoutSession(userId, plan, successUrl, cancelUrl);
+
+    sendSuccess(res, result);
+  }),
+);
+
+/**
+ * GET /api/v1/payments/stripe/subscription-status
+ * Get subscription status for current user
+ * Requires authentication
+ */
+router.get(
+  '/payments/stripe/subscription-status',
+  authMiddleware,
+  asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.authUser!.id;
+    const status = await paymentsService.getSubscriptionStatus(userId);
+    sendSuccess(res, status);
+  }),
+);
+
+/**
+ * POST /api/v1/payments/stripe/cancel-subscription
+ * Cancel user's subscription
+ * Requires authentication
+ */
+router.post(
+  '/payments/stripe/cancel-subscription',
+  authMiddleware,
+  validate({ body: cancelSubscriptionSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.authUser!.id;
+    const { cancelAtPeriodEnd } = req.body;
+
+    const subscription = await paymentsService.cancelSubscription(userId, cancelAtPeriodEnd);
+
+    sendSuccess(res, subscription);
+  }),
+);
+
+/**
+ * POST /api/v1/payments/stripe/webhook
+ * Handle Stripe webhook events
+ * Raw body required for signature verification
+ */
+router.post(
+  '/payments/stripe/webhook',
+  asyncHandler(async (req: Request, res: Response) => {
+    const signature = req.headers['stripe-signature'] as string;
+    
+    // For raw body handling in the webhook
+    let rawBody: Buffer | string = '';
+    
+    if (Buffer.isBuffer(req.body)) {
+      rawBody = req.body;
+    } else if (typeof req.body === 'string') {
+      rawBody = req.body;
+    } else {
+      // If body is parsed as JSON, we need to stringify it
+      rawBody = JSON.stringify(req.body);
+    }
+
+    if (!signature || !rawBody) {
+      res.status(400).json({ error: 'Missing signature or body' });
+      return;
+    }
+
+    try {
+      const bodyBuffer = typeof rawBody === 'string' ? Buffer.from(rawBody) : rawBody;
+      const event = stripe.webhooks.constructEvent(bodyBuffer, signature, env.STRIPE_WEBHOOK_SECRET);
+
+      const result = await paymentsService.handleStripeWebhook(event);
+
+      sendSuccess(res, result);
+    } catch (error: any) {
+      console.error('Webhook signature verification failed:', error.message);
+      res.status(400).json({ error: 'Webhook signature verification failed' });
+    }
+  }),
+);
+
+// ============================================
+// SSLCOMMERZ PAYMENT ROUTES (Alternative Payment)
+// ============================================
 
 const sslInitSchema = z
   .object({
@@ -24,140 +135,6 @@ const sslInitSchema = z
     plan: z.enum(['monthly', 'yearly']),
   })
   .strict();
-
-const toSafeBuffer = (value: string) => Buffer.from(value, 'utf8');
-
-const verifyHmac = (payload: string, signature: string, secret: string): boolean => {
-  const digest = createHmac('sha256', secret).update(payload).digest('hex');
-  const left = toSafeBuffer(digest);
-  const right = toSafeBuffer(signature);
-  if (left.length !== right.length) {
-    return false;
-  }
-  return timingSafeEqual(left, right);
-};
-
-router.post(
-  '/payments/stripe/create-checkout-session',
-  authMiddleware,
-  validate({ body: stripeCheckoutSchema }),
-  asyncHandler(async (req, res) => {
-    // Real Stripe checkout session creation should call Stripe SDK.
-    // We return a deterministic server-side intent and wait for webhook confirmation.
-    const intent = await prisma.paymentEvent.create({
-      data: {
-        provider: 'STRIPE',
-        externalEventId: `checkout_intent_${req.authUser!.id}_${Date.now()}`,
-        userId: req.authUser!.id,
-        eventType: 'CHECKOUT_CREATED',
-        payload: { plan: req.body.plan },
-      },
-    });
-
-    sendSuccess(res, {
-      checkoutSessionId: intent.externalEventId,
-      status: 'created',
-      message: 'Use Stripe hosted checkout on the frontend and rely on webhook confirmation.',
-    });
-  }),
-);
-
-router.post(
-  '/payments/stripe/webhook',
-  asyncHandler(async (req, res) => {
-    const rawBody = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body ?? {});
-    const signature = req.header('stripe-signature') || '';
-
-    if (!signature || !verifyHmac(rawBody, signature, env.STRIPE_WEBHOOK_SECRET)) {
-      res.status(400).json({ error: { code: 'INVALID_SIGNATURE', message: 'Invalid Stripe signature' } });
-      return;
-    }
-
-    const event = JSON.parse(rawBody) as {
-      id: string;
-      type: string;
-      data?: { object?: { customer?: string; subscription?: string; metadata?: { userId?: string } } };
-    };
-
-    const existing = await prisma.paymentEvent.findUnique({
-      where: {
-        provider_externalEventId: {
-          provider: 'STRIPE',
-          externalEventId: event.id,
-        },
-      },
-    });
-
-    if (existing?.processedAt) {
-      res.status(200).json({ received: true, duplicate: true });
-      return;
-    }
-
-    const userId = event.data?.object?.metadata?.userId;
-
-    const paymentEvent = await prisma.paymentEvent.upsert({
-      where: {
-        provider_externalEventId: {
-          provider: 'STRIPE',
-          externalEventId: event.id,
-        },
-      },
-      create: {
-        provider: 'STRIPE',
-        externalEventId: event.id,
-        userId,
-        eventType: event.type,
-        payload: event as unknown as object,
-        processedAt: new Date(),
-      },
-      update: {
-        eventType: event.type,
-        payload: event as unknown as object,
-        processedAt: new Date(),
-      },
-    });
-
-    if (userId && (event.type === 'checkout.session.completed' || event.type === 'invoice.paid')) {
-      const providerSubscriptionId = event.data?.object?.subscription;
-      const existing = await prisma.subscription.findFirst({
-        where: {
-          provider: 'STRIPE',
-          ...(providerSubscriptionId ? { providerSubscriptionId } : { userId }),
-        },
-      });
-
-      if (existing) {
-        await prisma.subscription.update({
-          where: { id: existing.id },
-          data: {
-            status: SubscriptionStatus.ACTIVE,
-            providerCustomerId: event.data?.object?.customer,
-            providerSubscriptionId,
-            currentPeriodStart: new Date(),
-            currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          },
-        });
-      } else {
-        await prisma.subscription.create({
-          data: {
-            userId,
-            provider: 'STRIPE',
-            status: SubscriptionStatus.ACTIVE,
-            providerCustomerId: event.data?.object?.customer,
-            providerSubscriptionId,
-            currentPeriodStart: new Date(),
-            currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            paymentEvents: {
-              connect: { id: paymentEvent.id },
-            },
-          },
-        });
-      }
-    }
-
-    res.status(200).json({ received: true });
-  }),
-);
 
 router.post(
   '/payments/sslcommerz/init',

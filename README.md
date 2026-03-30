@@ -102,7 +102,66 @@ The server will start on `http://localhost:3000`
 - `PUT /api/movies/:id` - Update movie
 - `DELETE /api/movies/:id` - Delete movie
 
-## Project Structure (Modular Architecture)
+## Payment Integration (Stripe & SSLCommerz)
+
+The backend includes comprehensive payment processing with Stripe:
+
+### Stripe Payment Features
+- ✅ Subscription checkout sessions
+- ✅ Webhook handling for payment events
+- ✅ Subscription management (create, update, cancel)
+- ✅ Multi-provider support (Stripe + SSLCommerz)
+
+### Setup Payment Processing
+
+1. **Stripe Configuration** (Recommended):
+   - Create Stripe account at https://stripe.com
+   - Get API keys and webhook secrets
+   - Create subscription products/prices
+   - See [PAYMENT_SETUP.md](PAYMENT_SETUP.md) for detailed instructions
+
+2. **Environment Variables Required**:
+   ```
+   STRIPE_API_KEY=sk_test_...
+   STRIPE_WEBHOOK_SECRET=whsec_test_...
+   STRIPE_MONTHLY_PRICE_ID=price_...
+   STRIPE_YEARLY_PRICE_ID=price_...
+   ```
+
+3. **Test Payment Flow**:
+   - Start server: `npm run dev`
+   - Use Stripe test cards
+   - Listen to webhooks with Stripe CLI: `stripe listen --forward-to localhost:3000/api/v1/payments/stripe/webhook`
+
+### Payment API Endpoints
+- `POST /api/v1/payments/stripe/create-checkout-session` - Create payment session
+- `GET /api/v1/payments/stripe/subscription-status` - Check subscription status
+- `POST /api/v1/payments/stripe/cancel-subscription` - Cancel subscription
+- `POST /api/v1/payments/stripe/webhook` - Webhook handler
+
+See [API.md](API.md) for complete endpoint documentation.
+
+## Authentication (Better Auth)
+
+The project uses [Better Auth](https://better-auth.com/) for modern, secure authentication:
+
+- ✅ Email/password authentication
+- ✅ Session management
+- ✅ Password reset flow
+- ✅ Email verification
+- ✅ Social login support (configurable)
+- ✅ Role-based access control (User, Admin)
+
+### Auth Configuration
+See [AUTH_SETUP.md](AUTH_SETUP.md) for authentication setup details.
+
+### Usage
+```bash
+# JWT token-based requests
+curl -H "Authorization: Bearer <sessionToken>" http://localhost:3000/api/v1/users/me
+```
+
+
 
 ```
 movie-portal-backend/

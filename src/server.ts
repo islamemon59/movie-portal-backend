@@ -22,7 +22,7 @@ import { apiRateLimiter, authRateLimiter, writeRateLimiter } from './config/rate
 
 const app: Express = express();
 
-// Middleware
+// Middleware - Order matters!
 app.use(helmet());
 app.use(cors({ origin: env.CORS_ORIGIN }));
 app.use(requestIdMiddleware);
@@ -30,8 +30,10 @@ app.use(morgan('dev'));
 app.use('/api', apiRateLimiter);
 
 // Stripe webhook requires raw body for signature verification.
+// Must be before express.json()
 app.use('/api/v1/payments/stripe/webhook', express.raw({ type: 'application/json' }));
 
+// Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

@@ -135,24 +135,64 @@ DB uniqueness (`userId + titleId`) prevents duplicates.
 
 ## Payments and Subscriptions
 
-Stripe:
+### Stripe Payment Integration
 
-- `POST /api/v1/payments/stripe/create-checkout-session`
-- `POST /api/v1/payments/stripe/webhook`
+**Authenticated Endpoints:**
 
-SSLCommerz:
+- `POST /api/v1/payments/stripe/create-checkout-session` - Create a Stripe checkout session
+  - Body: `{ plan: "monthly" | "yearly", successUrl?: string, cancelUrl?: string }`
+  - Returns: `{ checkoutSessionId, url, status }`
+  - Description: Creates a Stripe checkout session and redirects user to Stripe hosted checkout
 
-- `POST /api/v1/payments/sslcommerz/init`
-- `POST /api/v1/payments/sslcommerz/ipn`
-- `GET /api/v1/payments/sslcommerz/success`
-- `GET /api/v1/payments/sslcommerz/fail`
-- `GET /api/v1/payments/sslcommerz/cancel`
+- `GET /api/v1/payments/stripe/subscription-status` - Get current subscription status
+  - Returns: `{ status, hasActiveSubscription, currentPeriodEnd?, cancelAtPeriodEnd? }`
+  - Description: Retrieves the user's subscription status
 
-Rules enforced:
+- `POST /api/v1/payments/stripe/cancel-subscription` - Cancel user's subscription
+  - Body: `{ cancelAtPeriodEnd: boolean = true }`
+  - Returns: Updated subscription object
+  - Description: Cancels subscription (either at period end or immediately)
 
-- Server records payment intents/events
-- Subscription activation happens on verified webhook/IPN flow
-- Duplicate event IDs are idempotent via provider+externalEventId uniqueness
+**Webhook Endpoint (Unauthenticated):**
+
+- `POST /api/v1/payments/stripe/webhook` - Handle Stripe webhook events
+  - Header: `stripe-signature` (required for verification)
+  - Body: Raw JSON from Stripe
+  - Handles events:
+    - `checkout.session.completed` - Session payment completed
+    - `customer.subscription.created` - Subscription created
+    - `customer.subscription.updated` - Subscription updated
+    - `customer.subscription.deleted` - Subscription canceled
+    - `invoice.paid` - Invoice payment received
+    - `invoice.payment_failed` - Invoice payment failed
+  - Returns: `{ received: true, processed: true }`
+  - Note: Webhook signature verification is mandatory for security
+
+### SSLCommerz Payment Integration (Alternative)
+
+- `POST /api/v1/payments/sslcommerz/init` - Initialize SSLCommerz payment
+  - Authenticated: Yes
+  - Body: `{ amount: number, currency?: string = "BDT", plan: "monthly" | "yearly" }`
+  - Returns: `{ transactionId, successUrl, failUrl, cancelUrl, ipnUrl }`
+
+- `POST /api/v1/payments/sslcommerz/ipn` - Handle SSLCommerz IPN (Instant Payment Notification)
+  - Authenticated: No
+  - Body: Form data from SSLCommerz
+  - Description: Webhook for SSLCommerz payment notifications
+
+- `GET /api/v1/payments/sslcommerz/success` - Success redirect page
+- `GET /api/v1/payments/sslcommerz/fail` - Failed payment redirect page
+- `GET /api/v1/payments/sslcommerz/cancel` - Cancelled payment redirect page
+
+### Subscription Management
+
+**Key Rules:**
+
+- One active subscription per user per provider
+- Idempotent webhook/IPN handling via provider + externalEventId uniqueness
+- Subscription status can be: `ACTIVE`, `PAST_DUE`, `CANCELED`, `EXPIRED`
+- When subscription cancels, it transitions to `CANCELED` status
+- Period dates are stored for tracking active billing periods
 
 ## Admin Analytics
 
@@ -164,27 +204,60 @@ Rules enforced:
 
 ## Required Environment Variables
 
-Core:
+### Core Configuration
+- `NODE_ENV` - Environment mode: `development` | `production` | `test`
+- `PORT` - Server port (default: 3000)
+- `DATABASE_URL` - PostgreSQL connection string
+- `CORS_ORIGIN` - Allowed CORS origin
 
-- `NODE_ENV`
-- `PORT`
-- `DATABASE_URL`
-- `CORS_ORIGIN`
+### Authentication (Better Auth)
+- `BETTER_AUTH_SECRET` - Secret key for auth (min 32 characters, base64 encoded)
+- `BETTER_AUTH_URL` - Base URL for auth routes
 
-Auth:
+### Stripe Payment Integration
+- `STRIPE_API_KEY` - Your Stripe secret key (starts with `sk_`)
+- `STRIPE_WEBHOOK_SECRET` - Stripe webhook endpoint secret (starts with `whsec_`)
+- `STRIPE_MONTHLY_PRICE_ID` - Stripe price ID for monthly subscription plan
+- `STRIPE_YEARLY_PRICE_ID` - Stripe price ID for yearly subscription plan
 
-- `BETTER_AUTH_SECRET`
-- `BETTER_AUTH_URL`
+### SSLCommerz Payment Integration (Optional)
+- `SSLC_STORE_ID` - Store ID from SSLCommerz
+- `SSLC_STORE_PASSWORD` - Store password from SSLCommerz
+- `SSLC_SUCCESS_URL` - URL to redirect on successful payment
+- `SSLC_FAIL_URL` - URL to redirect on failed payment
+- `SSLC_CANCEL_URL` - URL to redirect on cancelled payment
+- `SSLC_IPN_URL` - Webhook URL for IPN notifications from SSLCommerz
 
-Stripe:
+## Setup Instructions
 
-- `STRIPE_WEBHOOK_SECRET`
+### 1. Generate Better Auth Secret
+```bash
+openssl rand -base64 32
+```
 
-SSLCommerz:
+### 2. Stripe Setup
+1. Create account at https://stripe.com
+2. Go to Dashboard > API keys
+3. Copy Secret key to `STRIPE_API_KEY`
+4. Create subscription prices in Products section
+5. Copy price IDs to `STRIPE_MONTHLY_PRICE_ID` and `STRIPE_YEARLY_PRICE_ID`
+6. Set up webhook endpoint:
+   - URL: `https://yourdomain.com/api/v1/payments/stripe/webhook`
+   - Events: `checkout.session.completed`, `customer.subscription.*`, `invoice.*`
+   - Copy signing secret to `STRIPE_WEBHOOK_SECRET`
 
-- `SSLC_STORE_ID`
-- `SSLC_STORE_PASSWORD`
-- `SSLC_SUCCESS_URL`
-- `SSLC_FAIL_URL`
-- `SSLC_CANCEL_URL`
-- `SSLC_IPN_URL`
+### 3. Database Setup
+```bash
+# Create .env file with DATABASE_URL
+
+# Run migrations
+npm run db:migrate
+
+# Seed data (optional)
+npm run db:seed
+```
+
+### 4. Development Server
+```bash
+npm run dev
+```
