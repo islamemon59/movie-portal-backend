@@ -1,5 +1,4 @@
 import { prisma } from './src/config/database';
-import { hash } from 'bcryptjs';
 
 async function main() {
   console.log('🌱 Seeding database...');
