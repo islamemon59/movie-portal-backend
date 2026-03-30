@@ -9,7 +9,7 @@ model PaymentEvent {
   processedAt     DateTime?
   createdAt       DateTime        @default(now())
 
-  subscription    Subscription?   @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
 
   @@unique([provider, externalEventId])
 }
