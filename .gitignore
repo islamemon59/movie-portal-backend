@@ -33,3 +33,8 @@ logs/
 # Prisma
 prisma/migrations/dev.db
 prisma/dev.db
+
+# Local Documentation (Development Only - Do not push to GitHub)
+SETUP_GUIDE.md
+BACKEND_ARCHITECTURE.md
+FRONTEND_INTEGRATION_GUIDE.md
