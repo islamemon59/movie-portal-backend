@@ -1,83 +1,101 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { CreateUserSchema, UpdateUserSchema } from '../schemas/user.schema';
-import { z } from 'zod';
+import { asyncHandler } from '../middleware/asyncHandler';
+import { validate } from '../middleware/validate.middleware';
+import { NotFoundError } from '../utils/globalErrorHandler';
+import { sendSuccess, sendCreated, sendNoContent } from '../utils/apiResponse';
 
 const router = Router();
 
-// Get all users
-router.get('/', async (_req: Request, res: Response) => {
-  try {
-    const users = await prisma.user.findMany();
-    res.json(users);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch users' });
-  }
-});
+// Get all users (DEPRECATED: Use /api/v1/users instead)
+router.get(
+  '/',
+  asyncHandler(async (_req: Request, res: Response) => {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+    sendSuccess(res, users);
+  })
+);
 
-// Get user by ID
-router.get('/:id', async (req: Request, res: Response) => {
-  try {
+// Get user by ID (DEPRECATED: Use /api/v1/users/:id instead)
+router.get(
+  '/:id',
+  asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const user = await prisma.user.findUnique({
       where: { id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+      },
     });
     if (!user) {
-      res.status(404).json({ error: 'User not found' });
-      return;
+      throw new NotFoundError('User');
     }
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch user' });
-  }
-});
+    sendSuccess(res, user);
+  })
+);
 
-// Create user
-router.post('/', async (req: Request, res: Response) => {
-  try {
-    const validatedData = CreateUserSchema.parse(req.body);
+// Create user (DEPRECATED: Use /api/v1/auth/register instead)
+router.post(
+  '/',
+  validate({ body: CreateUserSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
     const user = await prisma.user.create({
-      data: validatedData,
+      data: req.body,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+      },
     });
-    res.status(201).json(user);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ error: error.errors });
-      return;
-    }
-    res.status(500).json({ error: 'Failed to create user' });
-  }
-});
+    sendCreated(res, user);
+  })
+);
 
-// Update user
-router.put('/:id', async (req: Request, res: Response) => {
-  try {
+// Update user (DEPRECATED: Use /api/v1/users/me instead)
+router.put(
+  '/:id',
+  validate({ body: UpdateUserSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
-    const validatedData = UpdateUserSchema.parse(req.body);
     const user = await prisma.user.update({
       where: { id },
-      data: validatedData,
+      data: req.body,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+      },
     });
-    res.json(user);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ error: error.errors });
-      return;
-    }
-    res.status(500).json({ error: 'Failed to update user' });
-  }
-});
+    sendSuccess(res, user);
+  })
+);
 
-// Delete user
-router.delete('/:id', async (req: Request, res: Response) => {
-  try {
+// Delete user (DEPRECATED - Use /api/v1/users/:id instead)
+router.delete(
+  '/:id',
+  asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
-    await prisma.user.delete({
+    await prisma.user.deleteMany({
       where: { id },
     });
-    res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete user' });
+    sendNoContent(res);
   }
 });
 

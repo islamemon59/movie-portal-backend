@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express';
 import { UserService } from './user.service';
-import { AppError } from '../../middleware/errorHandler';
+import { AppError } from '../../utils/globalErrorHandler';
 
 const userService = new UserService();
 

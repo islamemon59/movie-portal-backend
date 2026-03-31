@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { UserController } from './user.controller';
-import { validateRequest } from '../../middleware/validation';
+import { validate } from '../../middleware/validate.middleware';
 import { CreateUserSchema, UpdateUserSchema } from './user.schema';
 import { asyncHandler } from '../../middleware/asyncHandler';
 import { authMiddleware } from '../../middleware/auth.middleware';
@@ -16,7 +16,7 @@ router.get(
 router.patch(
   '/me',
   authMiddleware,
-  validateRequest(UpdateUserSchema),
+  validate({ body: UpdateUserSchema }),
   asyncHandler((req, res) => userController.updateMe(req, res))
 );
 router.get(
@@ -45,14 +45,14 @@ router.get(
 // Create user
 router.post(
   '/',
-  validateRequest(CreateUserSchema),
+  validate({ body: CreateUserSchema }),
   asyncHandler((req, res) => userController.createUser(req, res))
 );
 
 // Update user
 router.put(
   '/:id',
-  validateRequest(UpdateUserSchema),
+  validate({ body: UpdateUserSchema }),
   asyncHandler((req, res) => userController.updateUser(req, res))
 );
 

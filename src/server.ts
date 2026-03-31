@@ -69,7 +69,6 @@ app.get('/', (_req: Request, res: Response) => {
     message: 'Movie Portal Backend API',
     version: '1.0.0',
     endpoints: {
-      health: '/health',
       auth: '/api/auth',
       users: '/api/users',
       movies: '/api/movies',

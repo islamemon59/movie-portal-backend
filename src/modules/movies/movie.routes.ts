@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { MovieController } from './movie.controller';
-import { validateRequest } from '../../middleware/validation';
+import { validate } from '../../middleware/validate.middleware';
 import { CreateMovieSchema, UpdateMovieSchema } from './movie.schema';
 import { asyncHandler } from '../../middleware/asyncHandler';
 
@@ -22,14 +22,14 @@ router.get(
 // Create movie
 router.post(
   '/',
-  validateRequest(CreateMovieSchema),
+  validate({ body: CreateMovieSchema }),
   asyncHandler((req, res) => movieController.createMovie(req, res))
 );
 
 // Update movie
 router.put(
   '/:id',
-  validateRequest(UpdateMovieSchema),
+  validate({ body: UpdateMovieSchema }),
   asyncHandler((req, res) => movieController.updateMovie(req, res))
 );
 

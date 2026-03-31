@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { MovieService } from './movie.service';
-import { AppError } from '../../middleware/errorHandler';
+import { AppError } from '../../utils/globalErrorHandler';
 
 const movieService = new MovieService();
 

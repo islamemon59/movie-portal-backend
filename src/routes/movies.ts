@@ -1,84 +1,73 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { CreateMovieSchema, UpdateMovieSchema } from '../schemas/movie.schema';
-import { z } from 'zod';
+import { asyncHandler } from '../middleware/asyncHandler';
+import { validate } from '../middleware/validate.middleware';
+import { NotFoundError } from '../utils/globalErrorHandler';
+import { sendSuccess, sendCreated, sendNoContent } from '../utils/apiResponse';
 
 const router = Router();
 
-// Get all movies
-router.get('/', async (_req: Request, res: Response) => {
-  try {
+// Get all movies (DEPRECATED: Use /api/v1/titles instead)
+router.get(
+  '/',
+  asyncHandler(async (_req: Request, res: Response) => {
     const movies = await prisma.movie.findMany();
-    res.json(movies);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch movies' });
-  }
-});
+    sendSuccess(res, movies);
+  })
+);
 
-// Get movie by ID
-router.get('/:id', async (req: Request, res: Response) => {
-  try {
+// Get movie by ID (DEPRECATED: Use /api/v1/titles/:id instead)
+router.get(
+  '/:id',
+  asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const movie = await prisma.movie.findUnique({
       where: { id },
     });
     if (!movie) {
-      res.status(404).json({ error: 'Movie not found' });
-      return;
+      throw new NotFoundError('Movie');
     }
-    res.json(movie);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch movie' });
-  }
-});
+    sendSuccess(res, movie);
+  })
+);
 
-// Create movie
-router.post('/', async (req: Request, res: Response) => {
-  try {
-    const validatedData = CreateMovieSchema.parse(req.body);
+// Create movie (DEPRECATED: Use /api/v1/admin/movies instead)
+router.post(
+  '/',
+  validate({ body: CreateMovieSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
     const movie = await prisma.movie.create({
-      data: validatedData,
+      data: req.body,
     });
-    res.status(201).json(movie);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ error: error.errors });
-      return;
-    }
-    res.status(500).json({ error: 'Failed to create movie' });
-  }
-});
+    sendCreated(res, movie);
+  })
+);
 
-// Update movie
-router.put('/:id', async (req: Request, res: Response) => {
-  try {
+// Update movie (DEPRECATED: Use /api/v1/admin/movies/:id instead)
+router.put(
+  '/:id',
+  validate({ body: UpdateMovieSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
-    const validatedData = UpdateMovieSchema.parse(req.body);
     const movie = await prisma.movie.update({
       where: { id },
-      data: validatedData,
+      data: req.body,
     });
-    res.json(movie);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ error: error.errors });
-      return;
-    }
-    res.status(500).json({ error: 'Failed to update movie' });
-  }
-});
+    sendSuccess(res, movie);
+  })
+);
 
-// Delete movie
-router.delete('/:id', async (req: Request, res: Response) => {
-  try {
+// Delete movie (DEPRECATED: Use /api/v1/admin/movies/:id instead)
+router.delete(
+  '/:id',
+  asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     await prisma.movie.delete({
       where: { id },
     });
-    res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete movie' });
-  }
-});
+    sendNoContent(res);
+  })
+);
 
 export default router;
